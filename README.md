@@ -1,10 +1,12 @@
 # Pairwiser
 Library for generate test cases based by pairwise theory 
 
-Base theory
+Base theory:
 https://en.wikipedia.org/wiki/All-pairs_testing
-
+Base algorithm:
 http://barbie.uta.edu/~fduan/ACTS/In-Parameter-Order_%20A%20Test%20Generation%20Strategy%20for%20Pairwise%20Testing.pdf
+
+With some modifications
 
 # Example
 We have system with 10 parameters. As example REST API with input json.
