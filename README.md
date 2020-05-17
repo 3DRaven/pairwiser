@@ -7,7 +7,23 @@ https://en.wikipedia.org/wiki/All-pairs_testing
 # Example
 We have system with 10 parameters. As example REST API with input json.
 
-## List of parameters and possible values:
+## Code example
+```java
+Map<String, List<Object>> params = new HashMap<>();
+
+for (int i = 0; i < 10; i++) {
+	for (int j = 0; j < 10 * Math.random(); j++) {
+		params.computeIfAbsent("P" + i, k -> new ArrayList<>()).add("p"+i+"v"+j);
+	}
+}
+
+PairwiseGenerator<String, Object> gen = new PairwiseGenerator<>(params);
+gen.stream().forEach(test -> {
+	log.info("Test: {}", test);
+});
+```
+
+## List of parameters and possible values
 
 * P0=[p0v0, p0v1, p0v2, p0v3, p0v4, p0v5, p0v6], 
 * P1=[p1v0, p1v1], 
