@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.abslab.lib</groupId>
 	<artifactId>pairwise-gen</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>Pairwise test cases generator</name>
 
 	<description>
@@ -20,22 +20,26 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-	<!-- <issueManagement> <system>Bitbucket</system> <url>https://bitbucket.org/atlassian/swagger-request-validator/issues</url> 
-		</issueManagement> <scm> <connection>scm:git:ssh://git@bitbucket.org/atlassian/swagger-request-validator.git</connection> 
-		<developerConnection>scm:git:ssh://git@bitbucket.org/atlassian/swagger-request-validator.git</developerConnection> 
-		<tag>HEAD</tag> <url>https://bitbucket.org/atlassian/swagger-request-validator</url> 
-		</scm> -->
 
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/3DRaven/pairwiser/issues</url>
+	</issueManagement>
+	
+	<scm>
+		<connection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/3DRaven/pairwiser</url>
+	</scm>
 
 	<developers>
 		<developer>
-			<id>i3draven</id>
+			<id>3DRaven</id>
 			<name>Renat Eskenin</name>
 			<email>3draven@gmail.com</email>
 		</developer>
 	</developers>
-
-
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,7 +52,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.jupiter.version>5.6.2</junit.jupiter.version>
 		<maven.surefire.version>2.22.2</maven.surefire.version>
-		<jackson.version>2.4.4</jackson.version>
+		<jackson.version>[2.9.10.4,)</jackson.version>
 		<hamcrest.version>1.3</hamcrest.version>
 		<assertj.version>3.15.0</assertj.version>
 	</properties>
@@ -107,7 +111,7 @@
 			<version>${assertj.version}</version>
 			<scope>test</scope>
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
@@ -116,7 +120,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>[2.9.10.4,)</version>
+			<version>${jackson.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
