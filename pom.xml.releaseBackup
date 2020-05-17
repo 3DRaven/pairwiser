@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.anyqn.lib</groupId>
 	<artifactId>pairwiser</artifactId>
-	<version>0.1.8-SNAPSHOT</version>
+	<version>0.1.7-SNAPSHOT</version>
 	<name>Pairwise test cases generator</name>
 	<description>Generate array of minimal size of pairwise tests cover all pairs of changing params</description>
 	<!-- <url>https://bitbucket.org/atlassian/swagger-request-validator</url> -->
@@ -50,7 +50,7 @@
 		<maven.release.plugin.version>2.5.3</maven.release.plugin.version>
 		<maven.scm.provider.gitexe.version>1.9.5</maven.scm.provider.gitexe.version>
 		<nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
-		<maven.source.plugin.version>3.2.0</maven.source.plugin.version>
+		<maven.source.plugin.version>2.10.4</maven.source.plugin.version>
 		<maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
 		<maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
 	</properties>
