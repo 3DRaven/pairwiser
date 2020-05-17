@@ -26,6 +26,7 @@ gen.stream().forEach(test -> {
 	log.info("Test: {}", test);
 });
 ```
+Type Object used only as example, types of parameters can be any 
 
 ## List of parameters and possible values
 
