@@ -1,23 +1,27 @@
 package com.abslab.lib.pairwise.gen;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.abslab.lib.pairwise.gen.PairwiseIndex.PrettyPrintedMap;
-
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 
+ * @author i3draven
+ * 
+ *         Pairwise theory test cases generator
+ *
+ * @param <C> Type of parameters names
+ * @param <E> Type of parameters values (or Object and different parameter
+ *            types)
+ */
 @Slf4j
 public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 
@@ -27,6 +31,10 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 	private int currentRow;
 	private int rowsCount;
 
+	/**
+	 * 
+	 * @param baseData describing of parameters and its possible values
+	 */
 	public PairwiseGenerator(Map<C, List<E>> baseData) {
 		this.baseData = baseData;
 		this.baseDataIndex = new PairwiseIndex<>(baseData);
@@ -37,6 +45,11 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 		return Collections.unmodifiableMap(generatedCases);
 	}
 
+	/**
+	 * Generation of test cases
+	 * 
+	 * @return
+	 */
 	private Map<C, List<E>> generate() {
 
 		if (null != generatedCases) {
@@ -44,11 +57,11 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 		}
 
 		baseDataIndex.fillStart();
-		// Горизонтальны рост
+		// Horizontal growth
 		while (!baseDataIndex.isRemovedAll()) {
 			log.info("Add column");
 			baseDataIndex.addColumn();
-			// Вертикальный рост
+			// Vertical growth
 			while (baseDataIndex.isNeedRows()) {
 				log.info("Add row");
 				baseDataIndex.addRow();
@@ -56,6 +69,7 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 		}
 		baseDataIndex.fillNulls();
 		generatedCases = baseDataIndex.map(baseData);
+		// Paranoid check that all pairs is covered
 		for (Entry<C, List<E>> entry : generatedCases.entrySet()) {
 			rowsCount = entry.getValue().size();
 			break;
@@ -76,6 +90,11 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 		return row;
 	}
 
+	/**
+	 * Return stream of already generated cases
+	 * 
+	 * @return
+	 */
 	public Stream<List<E>> stream() {
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(this, 0), false);
 	}

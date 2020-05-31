@@ -24,11 +24,21 @@ import lombok.Value;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Index Class for generation of test cases
+ * 
+ * @author i3draven
+ *
+ * @param <C> type of parameters names
+ * @param <E> type of values of parameters
+ */
 @Slf4j
 public class PairwiseIndex<C, E> {
 
+	// Index for base parameters values
 	private Map<Integer, List<Integer>> index = new PrettyPrintedMap<>(new LinkedHashMap<>());
 	private List<Integer> indexKeys;
+	// Last right column index number
 	private int rightColumnName;
 	private PrettyPrintedMap<Pair<Integer>, List<Pair<Integer>>> allPossiblePairs = new PrettyPrintedMap<>(
 			new HashMap<>());
@@ -43,7 +53,13 @@ public class PairwiseIndex<C, E> {
 		generateAllPairs();
 	}
 
-	// Создаем эквивалентное представление данных
+	/**
+	 * Make data index for base params values
+	 * 
+	 * @param baseData base params real values
+	 * @return inner class {@link PrettyPrintedMap} contains {@link Map} with
+	 *         indexed param names and values
+	 */
 	private PrettyPrintedMap<Integer, List<Integer>> createIndex(Map<C, List<E>> baseData) {
 		log.info("Start createIndex()");
 
@@ -55,7 +71,6 @@ public class PairwiseIndex<C, E> {
 					.range(0, baseData.get(baseDataColumnNames.get(i)).size()).boxed().collect(Collectors.toList())));
 		}
 
-		// Сортируем от длиннейшей колонки к коротким
 		index = index.getSorted();
 
 		log.debug("Index is created {}", index);
@@ -69,9 +84,9 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Просто заполняем случайными значениями не важные пустоты так как все пары уже
-	 * покрыты
+	 * Just fill empty values to any because we cover all need pairs
 	 */
+
 	public void fillNulls() {
 		log.info("Start fillNulls()");
 		log.debug("Final index state  {}", finalPairwiseIndex);
@@ -88,8 +103,11 @@ public class PairwiseIndex<C, E> {
 		log.debug("Final pairwise index {}", finalPairwiseIndex);
 	}
 
+	/**
+	 * Add all pairs of first two columns to cases because we need all this pairs in
+	 * cases anyway
+	 */
 	public void fillStart() {
-		// Добавляем все паросочетания первых двух колонок целиком
 		int firstColumnName = addColumnToRight();
 		int secondColumnName = addColumnToRight();
 		Pair<Integer> addedColumns = Pair.of(firstColumnName, secondColumnName);
@@ -100,9 +118,11 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Генерирует на основе исходных данных и индекса набор тестов
+	 * Generate of real cases from index and base params values
 	 * 
-	 * @return
+	 * @param baseData base params values
+	 * @return {@link Map} of pairwise test cases with real values of params where
+	 *         Map key is param name, and "columns" is {@link List} of case values
 	 */
 	public Map<C, List<E>> map(Map<C, List<E>> baseData) {
 		log.info("Start map()");
@@ -145,9 +165,9 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Добавляет колонку справа
+	 * Add column to the right position of index
 	 * 
-	 * @return возвращает ее имя в индексе
+	 * @return index number of added column
 	 */
 	public Integer addColumnToRight() {
 		rightColumnName = indexKeys.get(finalPairwiseIndex.size());
@@ -160,6 +180,9 @@ public class PairwiseIndex<C, E> {
 		}
 	}
 
+	/**
+	 * Horizontal growth
+	 */
 	public void addColumn() {
 		addColumnToRight();
 		List<Integer> columnCandidates = new ArrayList<>(getCandidatesToRight());
@@ -185,9 +208,12 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Добавляет в крайнюю правую колонку одно значение
+	 * Add one row value to current right column
 	 * 
-	 * @param value
+	 * @param value index value to adding
+	 * @throws IndexOutOfBoundsException when column size is greater than length of
+	 *                                   first column of index (index sorted from
+	 *                                   max column size to min)
 	 */
 	public void addValueToRight(Integer value) {
 		final List<Integer> c = finalPairwiseIndex.get(rightColumnName);
@@ -196,20 +222,28 @@ public class PairwiseIndex<C, E> {
 		} else {
 			throw new IndexOutOfBoundsException(String.format("We have maximum of rows:\n%s", index));
 		}
-		// Добавим все новые пары в удаленные, так как мы их храним в Set, то можно не
-		// париться с перепроверкой дублей
+		// Added row number
 		final int row = c.size() - 1;
 
 		addAllRemovedPairs(rightColumnName, row);
 	}
 
+	/**
+	 * 
+	 * @param columnName pair of params names used as column name to get list of
+	 *                   possible pairs values for this params pair
+	 * @return list of possible values for this params
+	 */
 	public List<Pair<Integer>> getAllPairsOfColumn(Pair<Integer> columnName) {
 		return allPossiblePairs.get(columnName);
 	}
 
 	/**
+	 * Make decision to make new row (new case for tests) to cover all possible
+	 * pairs in already covered pairs of parameters. So if we cover part of possible
+	 * pairs by Horizontal Growth we can cover all other by Vertical growth
 	 * 
-	 * @return все ли возможные пары удалены из данного набора тестов
+	 * @return true if need to add new test case
 	 */
 	public boolean isNeedRows() {
 		int allNotRemoved = allPossiblePairs.entrySet().stream().filter(e -> removedPairs.containsKey(e.getKey()))
@@ -217,16 +251,21 @@ public class PairwiseIndex<C, E> {
 		return removedPairsCount != allNotRemoved;
 	}
 
+	/**
+	 * 
+	 * @return true if removed all pairs
+	 */
 	public boolean isRemovedAll() {
 		int allPairsCount = allPossiblePairs.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
 		return removedPairsCount == allPairsCount;
 	}
 
 	/**
-	 * Добавляет все паросочетания с самой правой колонкой в заданной строке в
-	 * удаленные
+	 * Add all pairs in row to removed. Will been added only not null pairs of
+	 * values
 	 * 
-	 * @param row
+	 * @param row    index of row
+	 * @param column index of column
 	 */
 	private void addAllRemovedPairs(int column, int row) {
 		finalPairwiseIndexColumns.stream().filter(p -> p.getSecond().equals(column)).forEach(p -> {
@@ -246,17 +285,18 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Посчитает сколько пар будет удалено при добавлении этого значения справа
+	 * Gets the number of pairs to be deleted and not deleted if value will added to
+	 * row
 	 * 
-	 * @param value
-	 * @return
+	 * @param value for adding
+	 * @return {@link Pair} with - first value is number of removed pairs with this
+	 *         value and second is number of not removed pairs with this value
 	 */
 	private Pair<Integer> getRemovedPairs(Integer value) {
 		AtomicInteger removed = new AtomicInteger(0);
 		AtomicInteger notRemovedInColumns = new AtomicInteger(0);
 
-		// Выберем только те пары где справа самая правая колонка, так как только пары с
-		// ней нас волнуют, они еще не удалены
+		// Select pairs only with right column, al other pairs already removed
 		finalPairwiseIndexColumns.stream().filter(p -> p.getSecond().equals(rightColumnName)).forEach(p -> {
 			if (!isRemoved(p, Pair.of(getValue(getRightColumnRow(), p.getFirst()), value))) {
 				removed.incrementAndGet();
@@ -266,15 +306,36 @@ public class PairwiseIndex<C, E> {
 		return Pair.of(removed.get(), notRemovedInColumns.get());
 	}
 
-	private Integer getValue(int row, Integer columnName) {
+	/**
+	 * Get value from column
+	 * 
+	 * @param row        row index
+	 * @param columnName column index
+	 * @return
+	 */
+	private Integer getValue(Integer row, Integer columnName) {
 		List<Integer> values = finalPairwiseIndex.get(columnName);
 		return values.get(row);
 	}
 
+	/**
+	 * 
+	 * @return max right column current size in index
+	 */
 	private int getRightColumnRow() {
 		return finalPairwiseIndex.get(rightColumnName).size();
 	}
 
+	/**
+	 * Make decision between two possible candidate values to adding to column. If
+	 * candidates is equals then will be compared not removed pairs of two
+	 * candidates. Will be used candidate with less not removed pairs.
+	 * 
+	 * @param c1 candidate index
+	 * @param c2 candidate index
+	 * @return The value 0 if this equals candidates, 1 if c1 removed more pairs
+	 *         than c2, -1 if c2 removed more pairs than c1
+	 */
 	public int compareCandidates(Integer c1, Integer c2) {
 
 		if (c1.equals(c2)) {
@@ -284,13 +345,11 @@ public class PairwiseIndex<C, E> {
 		Pair<Integer> rc1 = getRemovedPairs(c1);
 		Pair<Integer> rc2 = getRemovedPairs(c2);
 
-		// Если первый кандидат удаляет больше пар
+		// If first candidate will be removed more pairs
 		if (rc1.getFirst() > rc2.getFirst()) {
 			return 1;
-			// Если кандидаты удаляют одинаковое количество пар
 		} else if (rc1.getFirst() == rc2.getFirst()) {
-			// Если в неудаленных у первого кандидата меньше чем у второго, то он
-			// предпочтительнее
+			// Compare to not removed pairs counters of candidates
 			if (rc1.getSecond() < rc2.getSecond()) {
 				return -1;
 			} else if (rc1.getSecond() == rc2.getSecond()) {
@@ -304,23 +363,27 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Удалена ли эта пара из этой колонки
 	 * 
-	 * @param columnName
-	 * @param pair
-	 * @return
+	 * @param columnName pair of columns to be checked
+	 * @param pair       pair of values to be checked
+	 * @return true if removed
 	 */
 	private boolean isRemoved(Pair<Integer> columnName, Pair<Integer> pair) {
 		return removedPairs.containsKey(columnName) && removedPairs.get(columnName).contains(pair);
 	}
 
+	/**
+	 * 
+	 * @param columnName pair of column indexes
+	 * @return number of not removed pairs
+	 */
 	private int countNotRemoved(Pair<Integer> columnName) {
 		return (int) allPossiblePairs.get(columnName).stream().filter(p -> !isRemoved(columnName, p)).count();
 	}
 
 	/**
 	 * 
-	 * @return список возможных значений для правой колонки
+	 * @return {@link List} of possible values to right column
 	 */
 	public List<Integer> getCandidatesToRight() {
 		return index.get(rightColumnName);
@@ -337,10 +400,10 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Добавит новую строку в массив, заполнив все кроме переданных значения null
+	 * Add new row to index with values from param values and null as other values
 	 * 
-	 * @param columnsNames
-	 * @param values
+	 * @param columnsNames pair of columns index to set values from values param
+	 * @param values       values to set
 	 */
 	public void addPairToRow(Pair<Integer> columnsNames, Pair<Integer> values) {
 		for (Entry<Integer, List<Integer>> column : finalPairwiseIndex.entrySet()) {
@@ -356,35 +419,29 @@ public class PairwiseIndex<C, E> {
 		addAllRemovedPairs(columnsNames.getSecond(), finalPairwiseIndex.get(columnsNames.getSecond()).size() - 1);
 	}
 
-//	public void addRow() {
-//		Map<Pair<Integer>, Set<Pair<Integer>>> rowsCandidates = getNotRemovedPairs();
-//		for (Map.Entry<Pair<Integer>, Set<Pair<Integer>>> rowCandidates : rowsCandidates.entrySet()) {
-//			for (Pair<Integer> candidate : rowCandidates.getValue()) {
-//				addPairToRow(rowCandidates.getKey(), candidate);
-//			}
-//		}
-//	}
-
+	/**
+	 * Add new row to cases when we need to cover pairs not covered in Horizontal
+	 * growth
+	 */
 	public void addRow() {
 		Map<Pair<Integer>, Set<Pair<Integer>>> notRemoved = getNotRemovedPairs();
 
-		// Перебираем все колонки по очереди
+		// Check all columns with not removed pairs
 		notRemoved.entrySet().stream().forEach(c -> {
-			// Перебираем все пары по очереди
+			// Get all not removed pairs from column
 			for (Pair<Integer> pair : c.getValue()) {
 				List<Integer> firstColumn = finalPairwiseIndex.get(c.getKey().getFirst());
 				List<Integer> secondColumn = finalPairwiseIndex.get(c.getKey().getSecond());
 				boolean found = false;
-				// Берем вторую колонку как основу для перебора позиций в колонке
+				// We used second column because columns is sorten by length and second shorter
+				// or equal to first
 				for (int i = 0; i < secondColumn.size(); i++) {
 					Integer firstValue = firstColumn.get(i);
 					Integer secondValue = secondColumn.get(i);
-					// Если на втором месте в тестовом наборе значение совпадает с значением из
-					// неудаленной пары
 					if (null != secondValue && secondValue.equals(pair.getSecond())) {
-						// На первом пусто
 						if (null == firstValue) {
-							// Заменим в тестовом наборе первое на неудаленное
+							// If we found this not removed pair in test cases and first value is null
+							// (possible any value) then just fill this pair
 							firstColumn.set(i, pair.getFirst());
 							addPairToRemoved(c.getKey(), pair);
 							found = true;
@@ -393,7 +450,7 @@ public class PairwiseIndex<C, E> {
 					}
 
 					if (null == firstValue && null == secondValue) {
-						// Заменим в тестовом наборе первое на неудаленное
+						// if we found "Just empty" position, we just will fill it
 						firstColumn.set(i, pair.getFirst());
 						secondColumn.set(i, pair.getSecond());
 						addPairToRemoved(c.getKey(), pair);
@@ -402,9 +459,9 @@ public class PairwiseIndex<C, E> {
 					}
 				}
 
+				// If pair for filling is not found then need to add new row with this pair as
+				// value for this columns and other position values as null
 				if (!found) {
-					// Если такой пары в тесте не нашлось, просто переберем всю строку и в этой
-					// колонке добавим значения, в остальных пусто
 					firstColumn.add(pair.getFirst());
 					secondColumn.add(pair.getSecond());
 					addPairToRemoved(c.getKey(), pair);
@@ -421,6 +478,11 @@ public class PairwiseIndex<C, E> {
 		log.trace("After row adding state {}", finalPairwiseIndex);
 	}
 
+	/**
+	 * 
+	 * @param columnName indexes of two columns
+	 * @param pair       removed values of this columns
+	 */
 	private void addPairToRemoved(Pair<Integer> columnName, Pair<Integer> pair) {
 		if (removedPairs.computeIfAbsent(columnName, k -> new HashSet<>()).add(pair)) {
 			removedPairsCount++;
@@ -428,7 +490,7 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Генерит все возможные паросочетания колонок в индексе
+	 * Cartesian products of all pairs of columns for pairwise
 	 */
 	private void generateAllPairs() {
 		log.info("Start generateAllPairs()");
@@ -439,8 +501,8 @@ public class PairwiseIndex<C, E> {
 			List<Integer> firstColumn = index.get(p.getFirst());
 			List<Integer> secondColumn = index.get(p.getSecond());
 
-			// Колонки отсортированы, потому мы можем спокойно брать паросочетания от первой
-			// к последней, паросочетания нужны без возврата для колонок 1,2,3 1-2 1-3 2-3
+			// Columns is sorted by length, so we can just get values from first to second
+			// Pairs of columns used as example 1,2,3 columns so pairs 1-2 1-3 2-3
 			List<Pair<Integer>> pairs = new ArrayList<>();
 			for (int i = 0; i < firstColumn.size(); i++) {
 				for (int j = 0; j < secondColumn.size(); j++) {
@@ -454,10 +516,10 @@ public class PairwiseIndex<C, E> {
 	}
 
 	/**
-	 * Генерит все возможные сочетания номеров колонок в индексе
 	 * 
-	 * @return
+	 * @return all possible pairs of columns
 	 */
+	// TODO: Check to List as param
 	private Set<Pair<Integer>> calculateColumnsPairs(Set<Integer> columnNames) {
 		final Set<Pair<Integer>> possiblePairs = new HashSet<>();
 
@@ -471,11 +533,26 @@ public class PairwiseIndex<C, E> {
 		return Collections.unmodifiableSet(possiblePairs);
 	}
 
+	/**
+	 * Utility class to implement Pair logic
+	 * 
+	 * @author i3draven
+	 *
+	 * @param <E> type of values
+	 */
 	@Value
 	public static class Pair<E> {
 		private E first;
 		private E second;
 
+		/**
+		 * Fabric method to make new pair
+		 * 
+		 * @param <E> type of values
+		 * @param f   first value
+		 * @param s   second value
+		 * @return
+		 */
 		public static <E> Pair<E> of(E f, E s) {
 			return new Pair<E>(f, s);
 		}
@@ -486,18 +563,36 @@ public class PairwiseIndex<C, E> {
 		}
 	}
 
+	/**
+	 * Delegate class of map with pretty printed toString for comfortable debugging.
+	 * This is "Array with columns" abstraction
+	 * 
+	 * @author i3draven
+	 *
+	 * @param <C> column name types
+	 * @param <E> values types
+	 */
 	@RequiredArgsConstructor
 	public static class PrettyPrintedMap<C, E extends Collection<?>> implements Map<C, E> {
 
 		@Delegate
 		private final Map<C, E> backMap;
 
+		/**
+		 * Sort this array of columns by column size
+		 * 
+		 * @return new sorted {@link LinkedHashMap}
+		 */
 		public PrettyPrintedMap<C, E> getSorted() {
 			return new PrettyPrintedMap<>(backMap.entrySet().stream().sorted(Map.Entry.comparingByValue((v1, v2) -> {
 				return -Integer.compare(v1.size(), v2.size());
 			})).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)));
 		}
 
+		/**
+		 * 
+		 * @return size max size of columns in this array of columns
+		 */
 		public int getMaxColumnSize() {
 			return backMap.entrySet().stream().mapToInt(c -> c.getValue().size()).max().orElse(0);
 		}
