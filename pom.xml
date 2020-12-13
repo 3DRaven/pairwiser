@@ -1,10 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.anyqn.lib</groupId>
 	<artifactId>pairwiser</artifactId>
-	<version>0.1.10-SNAPSHOT</version>
+	<version>0.1.11</version>
 	<name>Pairwise test cases generator</name>
 	<description>Generate array of minimal size of pairwise tests cover all pairs of changing params</description>
 	<inceptionYear>2020</inceptionYear>
@@ -23,7 +21,7 @@
 	<scm>
 		<connection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>pairwiser-0.1.11</tag>
 		<url>https://github.com/3DRaven/pairwiser</url>
 	</scm>
 	<developers>
