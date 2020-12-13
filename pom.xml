@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.anyqn.lib</groupId>
 	<artifactId>pairwiser</artifactId>
-	<version>0.1.18</version>
+	<version>0.1.19-SNAPSHOT</version>
 	<name>Pairwise test cases generator</name>
 	<description>Generate array of minimal size of pairwise tests cover all pairs of changing params</description>
 	<url>https://github.com/3DRaven/pairwiser</url>
@@ -22,7 +22,7 @@
 	<scm>
 		<connection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com:3DRaven/pairwiser.git</developerConnection>
-		<tag>pairwiser-0.1.18</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/3DRaven/pairwiser</url>
 	</scm>
 	<developers>
