@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,22 +25,41 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 
-	private Map<C, List<E>> baseData;
-	private PairwiseIndex<C, E> baseDataIndex;
-	private Map<C, List<E>> generatedCases;
+	/**
+	 * Source data loaded to generator
+	 */
+	private final Map<C, List<E>> baseData;
+	/**
+	 * Index for baseData
+	 */
+	private final PairwiseIndex<C, E> baseDataIndex;
+	/**
+	 * Destination generated cases
+	 */
+	private final Map<C, List<E>> generatedCases;
+	/**
+	 * Current row in destination generated cases generatedCases
+	 */
 	private int currentRow;
+	/**
+	 * Summary generated rows count
+	 */
 	private int rowsCount;
 
 	/**
 	 * 
 	 * @param baseData describing of parameters and its possible values
 	 */
-	public PairwiseGenerator(Map<C, List<E>> baseData) {
+	public PairwiseGenerator(final Map<C, List<E>> baseData) {
 		this.baseData = baseData;
 		this.baseDataIndex = new PairwiseIndex<>(baseData);
 		this.generatedCases = generate();
 	}
 
+	/**
+	 * 
+	 * @return generated cases map
+	 */
 	public Map<C, List<E>> getGenaratedCases() {
 		return Collections.unmodifiableMap(generatedCases);
 	}
@@ -51,30 +70,25 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 	 * @return
 	 */
 	private Map<C, List<E>> generate() {
-
-		if (null != generatedCases) {
-			return generatedCases;
-		}
-
-		baseDataIndex.fillStart();
-		// Horizontal growth
-		while (!baseDataIndex.isRemovedAll()) {
-			log.info("Add column");
-			baseDataIndex.addColumn();
-			// Vertical growth
-			while (baseDataIndex.isNeedRows()) {
-				log.info("Add row");
-				baseDataIndex.addRow();
+		Map<C, List<E>> returnCases = generatedCases;
+		if (null == returnCases) {
+			baseDataIndex.fillStart();
+			// Horizontal growth
+			while (!baseDataIndex.isRemovedAll()) {
+				log.info("Add column");
+				baseDataIndex.addColumn();
+				// Vertical growth
+				while (baseDataIndex.isNeedRows()) {
+					log.info("Add row");
+					baseDataIndex.addRow();
+				}
 			}
+			baseDataIndex.fillNulls();
+			returnCases = baseDataIndex.map(baseData);
+			returnCases.entrySet().stream().findAny().ifPresent(r -> rowsCount = r.getValue().size());
 		}
-		baseDataIndex.fillNulls();
-		generatedCases = baseDataIndex.map(baseData);
-		// Paranoid check that all pairs is covered
-		for (Entry<C, List<E>> entry : generatedCases.entrySet()) {
-			rowsCount = entry.getValue().size();
-			break;
-		}
-		return generatedCases;
+
+		return returnCases;
 	}
 
 	@Override
@@ -84,7 +98,10 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 
 	@Override
 	public List<E> next() {
-		List<E> row = generatedCases.entrySet().stream().map(e -> e.getValue().get(currentRow))
+		if (currentRow > rowsCount) {
+			throw new NoSuchElementException("New rows not found");
+		}
+		final List<E> row = generatedCases.entrySet().stream().map(e -> e.getValue().get(currentRow))
 				.collect(Collectors.toList());
 		currentRow++;
 		return row;

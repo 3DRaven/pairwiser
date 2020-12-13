@@ -17,6 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BaseDataArgumentsProvider implements ArgumentsProvider {
 
 	private ObjectMapper mapper = new ObjectMapper();
+	
+	public BaseDataArgumentsProvider() {
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public Stream<? extends Arguments> provideArguments(ExtensionContext context) {

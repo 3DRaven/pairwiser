@@ -13,12 +13,16 @@ import com.abslab.lib.pairwise.gen.PairwiseGenerator;
 
 import provider.BaseDataArgumentsProvider;
 
-public class GeneratorTests {
+class GeneratorTests {
+	
+	public GeneratorTests() {
+		// TODO Auto-generated constructor stub
+	}
 
 	@ParameterizedTest
 	@DisplayName("Check mapping from source data to result")
 	@ArgumentsSource(BaseDataArgumentsProvider.class)
-	public void pairwiseVariantsTest(Map<String, List<Object>> src, Map<String, List<Object>> exc) {
+	void pairwiseVariantsTest(Map<String, List<Object>> src, Map<String, List<Object>> exc) {
 		PairwiseGenerator<String, Object> gen = new PairwiseGenerator<>(src);
 		assertThat(gen.getGenaratedCases()).containsAllEntriesOf(exc);
 	}

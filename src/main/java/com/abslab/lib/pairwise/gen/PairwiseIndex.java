@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Delegate;
@@ -62,17 +63,17 @@ public class PairwiseIndex<C, E> {
 
 		ArrayList<C> baseDataColumnNames = new ArrayList<>(baseData.keySet());
 
-		PrettyPrintedMap<Integer, List<Integer>> index = new PrettyPrintedMap<>(new LinkedHashMap<>());
+		PrettyPrintedMap<Integer, List<Integer>> indexLocal = new PrettyPrintedMap<>(new LinkedHashMap<>());
 		for (int i = 0; i < baseData.size(); i++) {
-			index.put(i, Collections.unmodifiableList(IntStream
+			indexLocal.put(i, Collections.unmodifiableList(IntStream
 					.range(0, baseData.get(baseDataColumnNames.get(i)).size()).boxed().collect(Collectors.toList())));
 		}
 
-		index = index.getSorted();
+		indexLocal = indexLocal.getSorted();
 
-		log.debug("Index is created {}", index);
+		log.debug("Index is created {}", indexLocal);
 
-		return index;
+		return indexLocal;
 	}
 
 	@Override
@@ -87,7 +88,7 @@ public class PairwiseIndex<C, E> {
 	public void fillNulls() {
 		log.info("Start fillNulls()");
 		log.debug("Final index state  {}", finalPairwiseIndex);
-		finalPairwiseIndex.entrySet().stream().map(e -> e.getValue()).forEach(c -> {
+		finalPairwiseIndex.entrySet().stream().map(Entry::getValue).forEach(c -> {
 			for (int i = 0; i < c.size(); i++) {
 				if (null == c.get(i)) {
 					c.set(i, index.get(0).get(0));
@@ -107,9 +108,7 @@ public class PairwiseIndex<C, E> {
 		int secondColumnName = addColumnToRight();
 		Pair<Integer> addedColumns = Pair.of(firstColumnName, secondColumnName);
 		List<Pair<Integer>> allPairs = getAllPairsOfColumn(addedColumns);
-		allPairs.stream().forEach(p -> {
-			addPairToRow(addedColumns, p);
-		});
+		allPairs.stream().forEach(p -> addPairToRow(addedColumns, p));
 	}
 
 	/**
@@ -122,8 +121,7 @@ public class PairwiseIndex<C, E> {
 	public Map<C, List<E>> map(Map<C, List<E>> baseData) {
 		log.info("Start map()");
 		if (getNotRemovedPairs().entrySet().stream().mapToInt(e -> e.getValue().size()).sum() != 0) {
-			throw new IllegalStateException(
-					String.format("Not all pairs covered, all pairs [%s], removed [%s], base data [%s]"));
+			throw new IllegalStateException("Not all pairs covered");
 		}
 
 		log.info("All pairs covered");
@@ -147,14 +145,13 @@ public class PairwiseIndex<C, E> {
 
 		int size = finalPairwiseIndex.getMaxColumnSize();
 
-		if (cases.entrySet().stream().map(c -> c.getValue().size()).filter(s -> !s.equals(size)).findAny()
-				.isPresent()) {
+		if (cases.entrySet().stream().map(c -> c.getValue().size()).anyMatch(s -> !s.equals(size))) {
 			log.error("Cases generated {}", cases);
 			throw new IllegalStateException(String.format("We have broken column in index %s", finalPairwiseIndex));
 		}
 
 		log.info("Number of generated cases: {}",
-				Optional.ofNullable(finalPairwiseIndex.get(indexKeys.get(0))).map(v -> v.size()).orElse(0));
+				Optional.ofNullable(finalPairwiseIndex.get(indexKeys.get(0))).map(List::size).orElse(0));
 		return cases;
 
 	}
@@ -166,7 +163,7 @@ public class PairwiseIndex<C, E> {
 	 */
 	public Integer addColumnToRight() {
 		rightColumnName = indexKeys.get(finalPairwiseIndex.size());
-		if (index.get(rightColumnName).size() > 0) {
+		if (!index.get(rightColumnName).isEmpty()) {
 			finalPairwiseIndex.put(rightColumnName, new ArrayList<>());
 			finalPairwiseIndexColumns = calculateColumnsPairs(finalPairwiseIndex.keySet());
 			return rightColumnName;
@@ -215,7 +212,7 @@ public class PairwiseIndex<C, E> {
 		if (c.size() < finalPairwiseIndex.getMaxColumnSize()) {
 			c.add(value);
 		} else {
-			throw new IndexOutOfBoundsException(String.format("We have maximum of rows:\n%s", index));
+			throw new IndexOutOfBoundsException(String.format("We have maximum of rows:%n%s", index));
 		}
 		// Added row number
 		final int row = c.size() - 1;
@@ -386,11 +383,9 @@ public class PairwiseIndex<C, E> {
 
 	public PrettyPrintedMap<Pair<Integer>, Set<Pair<Integer>>> getNotRemovedPairs() {
 		PrettyPrintedMap<Pair<Integer>, Set<Pair<Integer>>> notRemovedPairs = new PrettyPrintedMap<>(new HashMap<>());
-		removedPairs.entrySet().stream().forEach(e -> {
-			allPossiblePairs.get(e.getKey()).stream().filter(v -> !e.getValue().contains(v)).forEach(v -> {
-				notRemovedPairs.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(v);
-			});
-		});
+		removedPairs.entrySet().stream()
+				.forEach(e -> allPossiblePairs.get(e.getKey()).stream().filter(v -> !e.getValue().contains(v))
+						.forEach(v -> notRemovedPairs.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(v)));
 		return notRemovedPairs;
 	}
 
@@ -400,14 +395,16 @@ public class PairwiseIndex<C, E> {
 	 * @param columnsNames pair of columns index to set values from values param
 	 * @param values       values to set
 	 */
-	public void addPairToRow(Pair<Integer> columnsNames, Pair<Integer> values) {
-		for (Entry<Integer, List<Integer>> column : finalPairwiseIndex.entrySet()) {
-			if (column.getKey().equals(columnsNames.getFirst())) {
-				column.getValue().add(values.getFirst());
-			} else if (column.getKey().equals(columnsNames.getSecond())) {
-				column.getValue().add(values.getSecond());
+	public void addPairToRow(@NonNull final Pair<Integer> columnsNames, @NonNull final Pair<Integer> values) {
+		for (final Entry<Integer, List<Integer>> column : finalPairwiseIndex.entrySet()) {
+			final Integer key = column.getKey();
+			final List<Integer> value = column.getValue();
+			if (key.equals(columnsNames.getFirst())) {
+				value.add(values.getFirst());
+			} else if (key.equals(columnsNames.getSecond())) {
+				value.add(values.getSecond());
 			} else {
-				column.getValue().add(null);
+				value.add(null);
 			}
 		}
 
@@ -433,15 +430,13 @@ public class PairwiseIndex<C, E> {
 				for (int i = 0; i < secondColumn.size(); i++) {
 					Integer firstValue = firstColumn.get(i);
 					Integer secondValue = secondColumn.get(i);
-					if (null != secondValue && secondValue.equals(pair.getSecond())) {
-						if (null == firstValue) {
-							// If we found this not removed pair in test cases and first value is null
-							// (possible any value) then just fill this pair
-							firstColumn.set(i, pair.getFirst());
-							addPairToRemoved(c.getKey(), pair);
-							found = true;
-							break;
-						}
+					if (null == firstValue && null != secondValue && secondValue.equals(pair.getSecond())) {
+						// If we found this not removed pair in test cases and first value is null
+						// (possible any value) then just fill this pair
+						firstColumn.set(i, pair.getFirst());
+						addPairToRemoved(c.getKey(), pair);
+						found = true;
+						break;
 					}
 
 					if (null == firstValue && null == secondValue) {
@@ -514,7 +509,6 @@ public class PairwiseIndex<C, E> {
 	 * 
 	 * @return all possible pairs of columns
 	 */
-	// TODO: Check to List as param
 	private Set<Pair<Integer>> calculateColumnsPairs(Set<Integer> columnNames) {
 		final Set<Pair<Integer>> possiblePairs = new HashSet<>();
 
@@ -549,7 +543,7 @@ public class PairwiseIndex<C, E> {
 		 * @return
 		 */
 		public static <E> Pair<E> of(E f, E s) {
-			return new Pair<E>(f, s);
+			return new Pair<>(f, s);
 		}
 
 		@Override
@@ -579,9 +573,10 @@ public class PairwiseIndex<C, E> {
 		 * @return new sorted {@link LinkedHashMap}
 		 */
 		public PrettyPrintedMap<C, E> getSorted() {
-			return new PrettyPrintedMap<>(backMap.entrySet().stream().sorted(Map.Entry.comparingByValue((v1, v2) -> {
-				return -Integer.compare(v1.size(), v2.size());
-			})).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)));
+			return new PrettyPrintedMap<>(backMap.entrySet().stream()
+					.sorted(Map.Entry.comparingByValue((v1, v2) -> -Integer.compare(v1.size(), v2.size())))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1,
+							LinkedHashMap::new)));
 		}
 
 		/**
@@ -597,7 +592,7 @@ public class PairwiseIndex<C, E> {
 			// From java 1.5 it is optimized to StringBuilder by compiler :)
 			String pretty = "{\n";
 			pretty += backMap.entrySet().stream().map(column -> {
-				String res = "	";
+				String res = " ";
 				res += Objects.toString(column.getKey());
 				res += " = [";
 				res += column.getValue().stream().map(v -> Objects.toString(v, "-")).collect(Collectors.joining(","));
