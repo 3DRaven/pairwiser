@@ -106,6 +106,15 @@ This test cases covered test system by rule "All pairs of params need to add at 
 * [p0v0, p2v0, p4v3, p8v4, p5v2, p7v2, p1v1, p3v1, p6v1, p9v1]
 * [p0v0, p2v0, p4v3, p8v5, p5v0, p7v0, p1v0, p3v0, p6v0, p9v0]
 
+# Release instruction
+
+mvn release:clean release:prepare
+mvn release:perform
+
+Important rule:
+
+in pom.xml need to add gpg, javadoc and source maven plugins to release profile, because without this step release plugin do not execute this plugins.
+
 # License
 
 Apache License
