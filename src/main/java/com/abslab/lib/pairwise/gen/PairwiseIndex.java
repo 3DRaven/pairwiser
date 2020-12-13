@@ -16,9 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.abslab.lib.pairwise.gen.PairwiseIndex.Pair;
-import com.abslab.lib.pairwise.gen.PairwiseIndex.PrettyPrintedMap;
-
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Delegate;
@@ -91,11 +88,9 @@ public class PairwiseIndex<C, E> {
 		log.info("Start fillNulls()");
 		log.debug("Final index state  {}", finalPairwiseIndex);
 		finalPairwiseIndex.entrySet().stream().map(e -> e.getValue()).forEach(c -> {
-			int j = 0;
 			for (int i = 0; i < c.size(); i++) {
 				if (null == c.get(i)) {
 					c.set(i, index.get(0).get(0));
-					j++;
 				}
 			}
 		});
