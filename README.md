@@ -1,5 +1,5 @@
 # Pairwiser
-Library for generate test cases based by pairwise theory 
+Library for generate test cases based on pairwise theory 
 
 Base theory:
 https://en.wikipedia.org/wiki/All-pairs_testing
