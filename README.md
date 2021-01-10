@@ -28,6 +28,16 @@ gen.stream().forEach(test -> {
 ```
 Type Object used only as example, types of parameters can be any
 
+## Maven dependency
+
+```xml
+<dependency>
+  <groupId>com.anyqn.lib</groupId>
+  <artifactId>pairwiser</artifactId>
+  <version>0.1.19</version>
+</dependency>
+```
+
 ## List of parameters and possible values
 
  * P0=[p0v0, p0v1, p0v2],
