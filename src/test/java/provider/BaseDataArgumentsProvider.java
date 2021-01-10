@@ -16,25 +16,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class BaseDataArgumentsProvider implements ArgumentsProvider {
 
-	private ObjectMapper mapper = new ObjectMapper();
-	
-	public BaseDataArgumentsProvider() {
-		// TODO Auto-generated constructor stub
-	}
+    private final ObjectMapper mapper = new ObjectMapper();
 
-	@Override
-	public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-		try {
+    public BaseDataArgumentsProvider() {
+        // TODO Auto-generated constructor stub
+    }
 
-			List<Map<String, Map<String, List<Object>>>> loadedData = mapper.readValue(
-					new URL("file:src/test/resources/pairwise-data.json"),
-					new TypeReference<List<Map<String, Map<String, List<Object>>>>>() {
-					});
+    @Override
+    public Stream<? extends Arguments> provideArguments(final ExtensionContext context) {
+        try {
 
-			return loadedData.stream().map(test -> Arguments.of(test.get("source"), test.get("expected")))
-					.collect(Collectors.toList()).stream();
-		} catch (IOException e) {
-			throw new IllegalStateException(String.format("Unable to load json with tests data with exception %s", e));
-		}
-	}
+            final List<Map<String, Map<String, List<Object>>>> loadedData = mapper.readValue(
+                    new URL("file:src/test/resources/pairwise-data.json"),
+                    new TypeReference<List<Map<String, Map<String, List<Object>>>>>() {
+                    });
+
+            return loadedData.stream().map(test -> Arguments.of(test.get("source"), test.get("expected")))
+                    .collect(Collectors.toList()).stream();
+        } catch (final IOException e) {
+            throw new IllegalStateException(String.format("Unable to load json with tests data with exception %s", e));
+        }
+    }
 }

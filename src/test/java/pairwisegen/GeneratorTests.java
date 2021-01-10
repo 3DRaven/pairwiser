@@ -14,17 +14,18 @@ import com.abslab.lib.pairwise.gen.PairwiseGenerator;
 import provider.BaseDataArgumentsProvider;
 
 class GeneratorTests {
-	
-	public GeneratorTests() {
-		// TODO Auto-generated constructor stub
-	}
 
-	@ParameterizedTest
-	@DisplayName("Check mapping from source data to result")
-	@ArgumentsSource(BaseDataArgumentsProvider.class)
-	void pairwiseVariantsTest(Map<String, List<Object>> src, Map<String, List<Object>> exc) {
-		PairwiseGenerator<String, Object> gen = new PairwiseGenerator<>(src);
-		assertThat(gen.getGenaratedCases()).containsAllEntriesOf(exc);
-	}
+    public GeneratorTests() {
+        // TODO Auto-generated constructor stub
+    }
+
+    @ParameterizedTest
+    @DisplayName("Check mapping from source data to result")
+    @ArgumentsSource(BaseDataArgumentsProvider.class)
+    void testPairwiseVariants(final Map<String, List<Object>> src, final Map<String, List<Object>> exc) {
+        final PairwiseGenerator<String, Object> gen = new PairwiseGenerator<>(src);
+        assertThat(gen.getGenaratedCases()).as("Check all elements of response is allowed")
+                .overridingErrorMessage("We have not allowed response").containsAllEntriesOf(exc);
+    }
 
 }
