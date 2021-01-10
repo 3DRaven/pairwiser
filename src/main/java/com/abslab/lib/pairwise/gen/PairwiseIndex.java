@@ -34,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 public class PairwiseIndex<C, E> {
 
     // Index for base parameters values
-    private Map<Integer, List<Integer>> index = new PrettyPrintedMap<>(new LinkedHashMap<>());
-    private final List<Integer> indexKeys;
+    private PrettyPrintedMap<Integer, List<Integer>> sortedIndex;
+    private List<Integer> indexKeys;
     // Last right column index number
     private int rightColumnName;
     private final PrettyPrintedMap<Pair<Integer>, List<Pair<Integer>>> allPossiblePairs = new PrettyPrintedMap<>(
@@ -48,8 +48,7 @@ public class PairwiseIndex<C, E> {
             new LinkedHashMap<>());
 
     public PairwiseIndex(final Map<C, List<E>> baseData) {
-        this.index = createIndex(baseData);
-        indexKeys = Collections.unmodifiableList(new ArrayList<>(index.keySet()));
+        createIndex(baseData);
         generateAllPairs();
     }
 
@@ -60,22 +59,22 @@ public class PairwiseIndex<C, E> {
      * @return inner class {@link PrettyPrintedMap} contains {@link Map} with
      *         indexed param names and values
      */
-    private PrettyPrintedMap<Integer, List<Integer>> createIndex(final Map<C, List<E>> baseData) {
+    private void createIndex(final Map<C, List<E>> baseData) {
         log.info("Start createIndex()");
 
         final ArrayList<C> baseDataColumnNames = new ArrayList<>(baseData.keySet());
 
-        PrettyPrintedMap<Integer, List<Integer>> indexLocal = new PrettyPrintedMap<>(new LinkedHashMap<>());
+        PrettyPrintedMap<Integer, List<Integer>> index = new PrettyPrintedMap<>(new LinkedHashMap<>());
+
         for (int i = 0; i < baseData.size(); i++) {
-            indexLocal.put(i, Collections.unmodifiableList(IntStream
+            index.put(i, Collections.unmodifiableList(IntStream
                     .range(0, baseData.get(baseDataColumnNames.get(i)).size()).boxed().collect(Collectors.toList())));
         }
 
-        indexLocal = indexLocal.getSorted();
+        sortedIndex = index.getSortedByRowSize();
+        indexKeys = Collections.unmodifiableList(new ArrayList<>(sortedIndex.keySet()));
 
-        log.debug("Index is created {}", indexLocal);
-
-        return indexLocal;
+        log.debug("Index is created {}", sortedIndex);
     }
 
     @Override
@@ -93,7 +92,7 @@ public class PairwiseIndex<C, E> {
         finalPairwiseIndex.entrySet().stream().map(Entry::getValue).forEach(c -> {
             for (int i = 0; i < c.size(); i++) {
                 if (null == c.get(i)) {
-                    c.set(i, index.get(0).get(0));
+                    c.set(i, sortedIndex.get(0).get(0));
                 }
             }
         });
@@ -131,15 +130,15 @@ public class PairwiseIndex<C, E> {
         final ArrayList<C> baseDataKeys = new ArrayList<>(baseData.keySet());
 
         final PrettyPrintedMap<C, List<E>> cases = new PrettyPrintedMap<>(new LinkedHashMap<>());
-        for (final Integer indexColumnName : indexKeys) {
-            if (finalPairwiseIndex.containsKey(indexColumnName)) {
-                for (final Integer indexValue : finalPairwiseIndex.get(indexColumnName)) {
-                    final C baseColumn = baseDataKeys.get(indexColumnName);
+        for (int i = 0; i < sortedIndex.size(); i++) {
+            if (finalPairwiseIndex.containsKey(i)) {
+                for (final Integer indexValue : finalPairwiseIndex.get(i)) {
+                    final C baseColumn = baseDataKeys.get(i);
                     final E baseValue = baseData.get(baseColumn).get(indexValue);
                     cases.computeIfAbsent(baseColumn, k -> new ArrayList<>()).add(baseValue);
                 }
             } else {
-                log.warn("This column is not in generated set {}", baseDataKeys.get(indexColumnName));
+                log.warn("This column is not in generated set {}", baseDataKeys.get(i));
             }
         }
 
@@ -165,7 +164,7 @@ public class PairwiseIndex<C, E> {
      */
     public Integer addColumnToRight() {
         rightColumnName = indexKeys.get(finalPairwiseIndex.size());
-        if (!index.get(rightColumnName).isEmpty()) {
+        if (!sortedIndex.get(rightColumnName).isEmpty()) {
             finalPairwiseIndex.put(rightColumnName, new ArrayList<>());
             finalPairwiseIndexColumns = calculateColumnsPairs(finalPairwiseIndex.keySet());
             return rightColumnName;
@@ -214,7 +213,7 @@ public class PairwiseIndex<C, E> {
         if (c.size() < finalPairwiseIndex.getMaxColumnSize()) {
             c.add(value);
         } else {
-            throw new IndexOutOfBoundsException(String.format("We have maximum of rows:%n%s", index));
+            throw new IndexOutOfBoundsException(String.format("We have maximum of rows:%n%s", sortedIndex));
         }
         // Added row number
         final int row = c.size() - 1;
@@ -380,7 +379,7 @@ public class PairwiseIndex<C, E> {
      * @return {@link List} of possible values to right column
      */
     public List<Integer> getCandidatesToRight() {
-        return index.get(rightColumnName);
+        return sortedIndex.get(rightColumnName);
     }
 
     public PrettyPrintedMap<Pair<Integer>, Set<Pair<Integer>>> getNotRemovedPairs() {
@@ -487,12 +486,12 @@ public class PairwiseIndex<C, E> {
      */
     private void generateAllPairs() {
         log.info("Start generateAllPairs()");
-        final Set<Pair<Integer>> columnPairs = calculateColumnsPairs(index.keySet());
+        final Set<Pair<Integer>> columnPairs = calculateColumnsPairs(sortedIndex.keySet());
 
         columnPairs.stream().forEach(p -> {
 
-            final List<Integer> firstColumn = index.get(p.getFirst());
-            final List<Integer> secondColumn = index.get(p.getSecond());
+            final List<Integer> firstColumn = sortedIndex.get(p.getFirst());
+            final List<Integer> secondColumn = sortedIndex.get(p.getSecond());
 
             // Columns is sorted by length, so we can just get values from first to second
             // Pairs of columns used as example 1,2,3 columns so pairs 1-2 1-3 2-3
@@ -575,7 +574,7 @@ public class PairwiseIndex<C, E> {
          *
          * @return new sorted {@link LinkedHashMap}
          */
-        public PrettyPrintedMap<C, E> getSorted() {
+        public PrettyPrintedMap<C, E> getSortedByRowSize() {
             return new PrettyPrintedMap<>(backMap.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue((v1, v2) -> -Integer.compare(v1.size(), v2.size())))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1,

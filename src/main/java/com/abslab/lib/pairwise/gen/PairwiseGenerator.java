@@ -47,7 +47,7 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
     private int rowsCount;
 
     /**
-     * 
+     *
      * @param baseData describing of parameters and its possible values
      */
     public PairwiseGenerator(final Map<C, List<E>> baseData) {
@@ -57,7 +57,7 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
     }
 
     /**
-     * 
+     *
      * @return generated cases map
      */
     public Map<C, List<E>> getGenaratedCases() {
@@ -66,7 +66,7 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 
     /**
      * Generation of test cases
-     * 
+     *
      * @return
      */
     private Map<C, List<E>> generate() {
@@ -109,7 +109,7 @@ public class PairwiseGenerator<C, E> implements Iterator<List<E>> {
 
     /**
      * Return stream of already generated cases
-     * 
+     *
      * @return
      */
     public Stream<List<E>> stream() {
