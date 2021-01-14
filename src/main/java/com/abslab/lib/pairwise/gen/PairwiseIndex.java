@@ -457,10 +457,10 @@ public class PairwiseIndex<C, E> {
                     firstColumn.add(pair.getFirst());
                     secondColumn.add(pair.getSecond());
                     addPairToRemoved(c.getKey(), pair);
-                    for (int j = 0; j < finalPairwiseIndex.size(); j++) {
-                        final Integer columnName = indexKeys.get(j);
-                        if (columnName != c.getKey().getFirst() && columnName != c.getKey().getSecond()) {
-                            finalPairwiseIndex.get(columnName).add(null);
+                    for (final Entry<Integer, List<Integer>> column : finalPairwiseIndex.entrySet()) {
+                        final Integer key = column.getKey();
+                        if (key != c.getKey().getFirst() && key != c.getKey().getSecond()) {
+                            finalPairwiseIndex.get(key).add(null);
                         }
                     }
                 }
