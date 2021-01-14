@@ -34,7 +34,7 @@ Type Object used only as example, types of parameters can be any
 <dependency>
   <groupId>com.anyqn.lib</groupId>
   <artifactId>pairwiser</artifactId>
-  <version>0.1.19</version>
+  <version>0.1.20</version>
 </dependency>
 ```
 
