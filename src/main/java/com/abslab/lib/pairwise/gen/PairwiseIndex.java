@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2021 Renat Eskenin
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -62,7 +62,7 @@ public class PairwiseIndex<C, E> {
     private final PrettyPrintedMap<Integer, List<Integer>> finalPairwiseIndex = new PrettyPrintedMap<>(
             new LinkedHashMap<>());
 
-    public PairwiseIndex(final Map<C, List<E>> baseData) {
+    public PairwiseIndex(@NonNull final Map<C, List<E>> baseData) {
         createIndex(baseData);
         generateAllPairs();
     }
@@ -74,7 +74,7 @@ public class PairwiseIndex<C, E> {
      * @return inner class {@link PrettyPrintedMap} contains {@link Map} with
      *         indexed param names and values
      */
-    private void createIndex(final Map<C, List<E>> baseData) {
+    private void createIndex(@NonNull final Map<C, List<E>> baseData) {
         log.info("Start createIndex()");
 
         final ArrayList<C> baseDataColumnNames = new ArrayList<>(baseData.keySet());
@@ -134,7 +134,7 @@ public class PairwiseIndex<C, E> {
      * @return {@link Map} of pairwise test cases with real values of params where
      *         Map key is param name, and "columns" is {@link List} of case values
      */
-    public Map<C, List<E>> map(final Map<C, List<E>> baseData) {
+    public Map<C, List<E>> map(@NonNull final Map<C, List<E>> baseData) {
         log.info("Start map()");
         if (getNotRemovedPairs().entrySet().stream().mapToInt(e -> e.getValue().size()).sum() != 0) {
             throw new IllegalStateException("Not all pairs covered");
@@ -223,7 +223,7 @@ public class PairwiseIndex<C, E> {
      *                                   first column of index (index sorted from
      *                                   max column size to min)
      */
-    public void addValueToRight(final Integer value) {
+    public void addValueToRight(@NonNull final Integer value) {
         final List<Integer> c = finalPairwiseIndex.get(rightColumnName);
         if (c.size() < finalPairwiseIndex.getMaxColumnSize()) {
             c.add(value);
@@ -242,7 +242,7 @@ public class PairwiseIndex<C, E> {
      *                   possible pairs values for this params pair
      * @return list of possible values for this params
      */
-    public List<Pair<Integer>> getAllPairsOfColumn(final Pair<Integer> columnName) {
+    public List<Pair<Integer>> getAllPairsOfColumn(@NonNull final Pair<Integer> columnName) {
         return allPossiblePairs.get(columnName);
     }
 
@@ -300,7 +300,7 @@ public class PairwiseIndex<C, E> {
      * @return {@link Pair} with - first value is number of removed pairs with this
      *         value and second is number of not removed pairs with this value
      */
-    private Pair<Integer> getRemovedPairs(final Integer value) {
+    private Pair<Integer> getRemovedPairs(@NonNull final Integer value) {
         final AtomicInteger removed = new AtomicInteger(0);
         final AtomicInteger notRemovedInColumns = new AtomicInteger(0);
 
@@ -321,7 +321,7 @@ public class PairwiseIndex<C, E> {
      * @param columnName column index
      * @return
      */
-    private Integer getValue(final Integer row, final Integer columnName) {
+    private Integer getValue(@NonNull final Integer row, @NonNull final Integer columnName) {
         final List<Integer> values = finalPairwiseIndex.get(columnName);
         return values.get(row);
     }
@@ -344,7 +344,7 @@ public class PairwiseIndex<C, E> {
      * @return The value 0 if this equals candidates, 1 if c1 removed more pairs
      *         than c2, -1 if c2 removed more pairs than c1
      */
-    public int compareCandidates(final Integer c1, final Integer c2) {
+    public int compareCandidates(@NonNull final Integer c1, @NonNull final Integer c2) {
 
         if (c1.equals(c2)) {
             return 0;
@@ -376,7 +376,7 @@ public class PairwiseIndex<C, E> {
      * @param pair       pair of values to be checked
      * @return true if removed
      */
-    private boolean isRemoved(final Pair<Integer> columnName, final Pair<Integer> pair) {
+    private boolean isRemoved(@NonNull final Pair<Integer> columnName, @NonNull final Pair<Integer> pair) {
         return removedPairs.containsKey(columnName) && removedPairs.get(columnName).contains(pair);
     }
 
@@ -385,7 +385,7 @@ public class PairwiseIndex<C, E> {
      * @param columnName pair of column indexes
      * @return number of not removed pairs
      */
-    private int countNotRemoved(final Pair<Integer> columnName) {
+    private int countNotRemoved(@NonNull final Pair<Integer> columnName) {
         return (int) allPossiblePairs.get(columnName).stream().filter(p -> !isRemoved(columnName, p)).count();
     }
 
@@ -490,7 +490,7 @@ public class PairwiseIndex<C, E> {
      * @param columnName indexes of two columns
      * @param pair       removed values of this columns
      */
-    private void addPairToRemoved(final Pair<Integer> columnName, final Pair<Integer> pair) {
+    private void addPairToRemoved(@NonNull final Pair<Integer> columnName, @NonNull final Pair<Integer> pair) {
         if (removedPairs.computeIfAbsent(columnName, k -> new HashSet<>()).add(pair)) {
             removedPairsCount++;
         }
@@ -526,7 +526,7 @@ public class PairwiseIndex<C, E> {
      *
      * @return all possible pairs of columns
      */
-    private static Set<Pair<Integer>> calculateColumnsPairs(final Set<Integer> columnNames) {
+    private static Set<Pair<Integer>> calculateColumnsPairs(@NonNull final Set<Integer> columnNames) {
         final Set<Pair<Integer>> possiblePairs = new HashSet<>();
 
         final List<Integer> keys = new ArrayList<>(columnNames);
